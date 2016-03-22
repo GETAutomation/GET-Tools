@@ -1,0 +1,12 @@
+/.gradle
+/.rvmrc
+log
+junit
+build
+pkg/
+Session.vim
+spec/fixtures
+.*.sw[a-z]
+*.un~
+/.idea
+.idea

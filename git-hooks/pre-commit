@@ -1,0 +1,160 @@
+#!/bin/bash
+# vim: ts=2 et sw=2 autoindent
+# Description: Module.sh is a set of functions to aid in the development
+#              and usage of any get-automation modules. 
+#
+# Author: Daniel 'ShellFu' Kendrick
+# Official Site: http://www.shellfu.com
+# E-Mail Address: dk@shellfu.com
+#
+# LICENSE:
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+#-------------------------------------------------------------------
+# Global Vars
+#-------------------------------------------------------------------
+exec 1>&2 # Redirect script output to stderr
+TMPFILE=$(mktemp /tmp/tmp.XXXXXXXXXX)
+STATUS=0
+declare -A TOOLS=( [puppet]='' [puppet-lint]='' [erb]='' [git]='' ) 
+#-------------------------------------------------------------------
+# Functions
+#-------------------------------------------------------------------
+
+errexit() {
+# Function for exit due to fatal program error
+# Accepts 1 arg: string containing descriptive error message
+  echo "${scriptname}: ${1:-"Unknown Error"}" >&2
+  exit 1
+}
+
+signal_exit() {
+  case ${1} in
+    INT)
+      cleanup_temporary_files
+      echo "${scriptname}: Program aborted by user" >&2
+      exit;;
+
+    TERM)
+      cleanup_temporary_files
+      echo "${scriptname}: Program terminated" >&2
+      exit;;
+
+    *)
+      cleanup_temporary_files
+      errexit "${scriptname}: Terminating on unknown signal";;
+  esac
+}
+
+check_for_installed_prerequisites() {
+  for KEY in "${!TOOLS[@]}"; do 
+    TOOLS[$KEY]=`which ${KEY}`
+    if [ ${?} -ne 0 ]; then
+      errexit "[ERROR]: ${KEY} was not found on your system. Please install." 
+    fi
+  done
+}
+
+check_git_revision() {
+  OLDIFS=${IFS}
+  IFS=$(echo -en "\n\b")
+
+  if git rev-parse --quiet --verify HEAD > /dev/null
+  then
+      GIT_REVISION=HEAD
+  else
+      # Initial commit: diff against an empty tree object
+      GIT_REVISION=HEAD
+  fi
+  declare -a FILES
+  for file in `git diff --cached --name-only --diff-filter=ACM "${GIT_REVISION}"`; do
+    if [[ $(git cat-file -s ":0:${file}") -eq 0 ]]; then
+      continue
+    fi
+    git cat-file blob ":0:${file}" > $TMPFILE
+        
+    if [[ $? -ne 0 ]]; then
+      echo "[ERROR]: Check of ${file} failed"
+      STATUS=2
+    else
+      check_file_extensions ${file}
+    fi  
+  done
+
+  IFS=${OLDIFS}
+}
+
+check_file_extensions() {
+  extension="${1##*.}"
+  case ${extension} in
+     pp)
+       echo "[INFO]: File is a Puppet PP File"
+       check_syntax_puppet ${1} 
+       check_syntax_puppet_lint ${1}
+     ;;
+
+     erb)
+       echo "[INFO]: File is a Ruby ERB Template"
+       check_syntax_erb ${1}
+     ;;
+  esac
+}
+
+check_syntax_puppet() {
+  echo "[INFO]: Checking puppet syntax of modules, and manifests"
+  ${TOOLS[puppet]} parser validate ${TMPFILE}
+  if [[ $? -ne 0 ]]; then
+    echo "[ERROR]: Syntax error in ${1}. Run '${TOOLS[puppet]} parser validate ${1}'" >&2
+    STATUS=2
+  else
+    echo "[INFO]: Puppet Syntax Clean"
+  fi
+}
+
+check_syntax_puppet_lint() {
+  echo "[INFO]: Checking puppet code style against lint"
+  ${TOOLS[puppet-lint]} --no-autoloader_layout-check --no-80chars-check --log-format "${TMPFILE}:%{line} %{KIND} - %{message}" ${TMPFILE} > /dev/null
+  if [[ $? -ne 0 ]] ; then
+    STATUS=0
+  else
+    echo "[INFO]: Puppet Lint Clean"
+  fi
+}
+
+check_syntax_erb() {
+  echo "[INFO]: Checking ERB template syntax"
+  erb -x -T - "${TMPFILE}" | ruby -c > /dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
+     echo "ERB syntax error in ${1}" >&2
+     STATUS=2
+  else
+    echo "[INFO]: Ruby ERB Syntax Clean"
+  fi
+}
+
+cleanup_temporary_files() {
+  rm -rf ${TMPFILE}
+}
+
+
+# -------------------------------------------------------------------
+#  Start Script Execution
+# -------------------------------------------------------------------
+# Trap TERM, HUP, and INT signals and properly exit
+trap 'signal_exit' TERM INT HUP
+check_for_installed_prerequisites
+check_git_revision
+cleanup_temporary_files
+exit ${STATUS}

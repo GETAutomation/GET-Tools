@@ -1,0 +1,7 @@
+fixtures:
+  repositories:
+    "getlib": "git@github.comcast.com:GETAutomation/puppet-getlib"
+    "stdlib":  "git@github.comcast.com:GETAutomation/puppetlabs-stdlib"
+  symlinks:
+    "skel-minimal": "#{source_dir}"
+

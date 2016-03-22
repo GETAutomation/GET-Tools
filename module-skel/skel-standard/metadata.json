@@ -1,0 +1,21 @@
+{
+  "name": "puppet-skel-standard",
+  "version": "2.0.10",
+  "author": "GET-Automation",
+  "license": "Apache-2.0",
+  "summary": "skel-standard module installs, and enforces the skel-standard package as well as it's configuration file, and service",
+  "source": "https://comcast.github.com/GETAutomation/puppet-skel-standard",
+  "project_page": "https://comcast.github.com/GETAutomation/puppet-skel-standard",
+  "issues_url": "https://comcast.github.com/GETAutomation/puppet-skel-standard/issues",
+  "tags": ["skel-standard"],
+  "operatingsystem_support": [
+    {
+    "operatingsystem":"RedHat",
+    "operatingsystemrelease":[ "5.0", "6.0" ]
+    }
+   ],
+  "dependencies": [
+    { "name": "puppetlabs/stdlib", "version_requirement": ">=3.2.0 <5.0.0" },
+    { "name": "get/getlib", "version_requirement": ">= 0.0.4" }
+  ]
+}

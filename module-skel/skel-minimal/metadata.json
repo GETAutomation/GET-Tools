@@ -4,9 +4,9 @@
   "author": "GET-Automation",
   "license": "Apache-2.0",
   "summary": "skel-minimal module installs, and enforces the skel-minimal package as well as it's configuration file",
-  "source": "https://comcast.github.com/GETAutomation/puppet-skel-minimal",
-  "project_page": "https://comcast.github.com/GETAutomation/puppet-skel-minimal",
-  "issues_url": "https://comcast.github.com/GETAutomation/puppet-skel-minimal/issues",
+  "source": "https://github.com/GETAutomation/puppet-skel-minimal",
+  "project_page": "https://github.com/GETAutomation/puppet-skel-minimal",
+  "issues_url": "https://github.com/GETAutomation/puppet-skel-minimal/issues",
   "tags": ["skel-minimal"],
   "operatingsystem_support": [
     {

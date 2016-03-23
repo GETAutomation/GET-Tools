@@ -1,7 +1,7 @@
 fixtures:
   repositories:
     "getlib": "git@github.com:GETAutomation/puppet-getlib"
-    "stdlib":  "git@github.com:GETAutomation/puppet-stdlib"
+    "stdlib":  "git@github.com:GETAutomation/puppetlabs-stdlib"
   symlinks:
     "skel-minimal": "#{source_dir}"
 

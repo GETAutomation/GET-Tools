@@ -20,7 +20,7 @@ RSpec.configure do |c|
   c.formatter = :documentation
 
   c.before :suite do
-    ['getlib'].each do |module_name|
+    ['getlib','stdlib'].each do |module_name|
       module_dir = "#{proj_root}/#{module_name}"
       puppet_module_install(:source => module_dir, :module_name => module_name)
     end
